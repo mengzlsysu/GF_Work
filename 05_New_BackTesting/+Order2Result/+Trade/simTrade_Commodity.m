@@ -20,10 +20,12 @@ function [DailyStats] = simTrade_Commodity(Orders, StartDate, EndDate, ModelPath
     load('TrdDate.mat');   % 读取变量: TrdDate
     
     %% 初始化：开始日期
-    % 读取变量 Orders
+    
+    %读取变量: Orders
     if isempty(Orders)
-       load([ModelPath, ModelName, '\Orders.mat']);    
+        load([ModelPath, ModelName,'\Orders.mat']);   
     end
+    
     if size(Orders,1)<1 
         disp([ModelName, ' 交易信号文件为空.']);
         disp([ModelName, ' 模拟结束.']);
@@ -93,7 +95,7 @@ function [DailyStats] = simTrade_Commodity(Orders, StartDate, EndDate, ModelPath
     %% 模拟主程序
     SimTradeConstructor = str2func(['Order2Result.Trade.SimTrade_', TrsParam.TrsType]);
     simTrade = SimTradeConstructor();
-    DailyStats = simTrade.execute(TrdDate, ti_begin, ti_end, ModelPath, ModelName, TrsParam, Balance, DailyStats, ModelParams)
+    DailyStats = simTrade.execute(Orders, TrdDate, ti_begin, ti_end, ModelPath, ModelName, TrsParam, Balance, DailyStats, ModelParams)
         
     disp([ModelName, ' 模拟成功结束.']);
 end

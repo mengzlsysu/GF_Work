@@ -6,7 +6,7 @@
 %       EndDate(字符串'yyyymmdd'): 结束日期
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function dailyStats = GenerateResults(ModelParams, Orders)
+function dailyStats = GenerateResults(ModelParams, CommodityList, Orders)
     
     global DataPath;
     DataPath = '..\00_DataBase\MarketData\';
@@ -20,9 +20,9 @@ function dailyStats = GenerateResults(ModelParams, Orders)
             EndDate = datenum(Y, M, D)-1;
         end
         EndDate = datestr(EndDate, 'yyyymmdd');
-    elseif nargin == 1
+    elseif nargin == 2
         Orders = [];    
-    elseif nargin >= 3
+    elseif nargin >= 4
         error('参数太多！');
     end
     
@@ -48,6 +48,16 @@ function dailyStats = GenerateResults(ModelParams, Orders)
     models = [];
     for itemp = 1:length(ModelParams)
        models = [models,ModelParams(itemp).FileName]; 
+    end
+    
+    if ischar(CommodityList)
+       models = [models,'\',CommodityList];    
+    elseif iscell(CommodityList)
+       models = [models,'\']; 
+       for itemp = 1:length(CommodityList)
+           Commodity = CommodityList{itemp}; 
+           models = [models,Commodity,'_']; 
+       end 
     end
  
    [dailyStats] = Order2Result.Trade.simTrade_Commodity(Orders, StartDate, EndDate, modelPath, models, 1e7, minTrsParam, ModelParams);

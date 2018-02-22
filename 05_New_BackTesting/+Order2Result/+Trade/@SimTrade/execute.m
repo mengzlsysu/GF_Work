@@ -1,7 +1,6 @@
-function [ DailyStats ] = execute(obj, TrdDate, ti_begin, ti_end, ModelPath, ModelName,TrsParam, Balance, DailyStats, ModelParams)
+function [ DailyStats ] = execute(obj, Orders, TrdDate, ti_begin, ti_end, ModelPath, ModelName,TrsParam, Balance, DailyStats, ModelParams)
     global DataPath; 
     %% 交易信号文件
-    load([ModelPath, ModelName, '\Orders.mat']);    %读取变量: Orders
     
     ordDate = zeros(length(Orders),1);
     for ii = 1:length(Orders)
@@ -68,7 +67,7 @@ function [ DailyStats ] = execute(obj, TrdDate, ti_begin, ti_end, ModelPath, Mod
         save([blcPath, int2str(TrdDate(ti,1)), '.mat'], 'Balance');
 
         DailyStats(end-ti_end+ti,:) =[TrdDate(ti,1), Balance{end, 2}, Balance{end,3}, Balance{end, 4}];
-    end  % for ti= ti_begin : ti_end
+    end  
 
 end
 

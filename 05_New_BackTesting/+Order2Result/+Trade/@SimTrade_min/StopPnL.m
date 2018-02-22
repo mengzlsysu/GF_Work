@@ -89,7 +89,13 @@ function Adj_Trade = AdjTrade(Trade_Open, Trade_Close, MinData, IsStopLoss, IsSt
     OpenPrice = round(Capital/MultiplierMap(Trade_Open{2})/Trade_Open{5});
     
     StartTime = rem(Trade_Open{1},1e6); EndTime = rem(Trade_Close{1},1e6);
-    StartIndex = find( MinData(:,2)>StartTime, 1, 'first' ); EndIndex = find( MinData(:,2)<=EndTime, 1, 'last' );
+    StartTime = AdjTime(StartTime, 1); EndTime = AdjTime(EndTime, 1);
+    
+    for itemp = 1:size(MinData,1)
+        MinData(itemp,2) = AdjTime(MinData(itemp,2),1); 
+    end
+    
+    StartIndex = find( MinData(:,2)>StartTime, 1, 'first' ); EndIndex = find( MinData(:,2)<EndTime, 1, 'last' );
     
     % 变动幅度
     Float = (MinData(StartIndex:EndIndex,6) - OpenPrice)/OpenPrice;
@@ -105,28 +111,55 @@ function Adj_Trade = AdjTrade(Trade_Open, Trade_Close, MinData, IsStopLoss, IsSt
            return;
        else
            Index_temp = min(Index_temp);
-           Adj_Trade{1} = MinData(StartIndex + Index_temp,1)*1e6 + MinData(StartIndex + Index_temp,2);
+           Adj_Trade{1} = MinData(StartIndex + Index_temp,1)*1e6 + AdjTime(MinData(StartIndex + Index_temp,2),2);
            disp([num2str(Adj_Trade{1}),' 强平止损/止盈 !', ' 开仓价: ', num2str(OpenPrice), ', 目标平仓价: ', num2str(MinData(StartIndex + Index_temp,6))]);                      
        end
     % 只止损   
     elseif IsStopLoss
-       StopLossIndex = find( Float < -StopLossRange, 1, 'first'); 
+       if strcmp(Trade_Open{3},Str(2)) 
+          StopLossIndex = find( Float < -StopLossRange, 1, 'first'); 
+       else
+          StopLossIndex = find( Float > StopLossRange, 1, 'first'); 
+       end
        Index_temp = StopLossIndex;       
        if isempty(Index_temp)
            return;
        else
-           Adj_Trade{1} = MinData(StartIndex + Index_temp,1)*1e6 + MinData(StartIndex + Index_temp,2);        
+           Adj_Trade{1} = MinData(StartIndex + Index_temp,1)*1e6 + AdjTime(MinData(StartIndex + Index_temp,2),2);        
            disp([num2str(Adj_Trade{1}),' 强平止损 !', ' 开仓价: ', num2str(OpenPrice), ', 目标平仓价: ', num2str(MinData(StartIndex + Index_temp,6))]);           
        end
     % 只止盈   
     elseif IsStopProfit
-       StopProfitIndex = find( Float > StopProfitRange, 1, 'first'); 
+       if strcmp(Trade_Open{3},Str(2))  
+          StopProfitIndex = find( Float > StopProfitRange, 1, 'first'); 
+       else
+          StopProfitIndex = find( Float < -StopProfitRange, 1, 'first');  
+       end
        Index_temp = StopProfitIndex;       
        if isempty(Index_temp)
            return;
        else
-           Adj_Trade{1} = MinData(StartIndex + Index_temp,1)*1e6 + MinData(StartIndex + Index_temp,2);   
+           Adj_Trade{1} = MinData(StartIndex + Index_temp,1)*1e6 + AdjTime(MinData(StartIndex + Index_temp,2),2);         
            disp([num2str(Adj_Trade{1}),' 强平止盈 !', ' 开仓价: ', num2str(OpenPrice), ', 目标平仓价: ', num2str(MinData(StartIndex + Index_temp,6))]);                      
        end       
+    end
+end
+
+function Adj_Time = AdjTime(NormalTime, Params)
+%   每日从夜盘开始, 在150000结束, 这里调整时间
+%   Params = 1: 00000-150000不变, 其它减去240000
+%   Params = 2: 00000-150000不变, 负数加上240000
+    
+    Adj_Time = NormalTime;
+    if Params == 1
+        if 150000 < NormalTime && NormalTime < 240000
+            Adj_Time = NormalTime - 240000;
+        end
+    elseif Params == 2
+        if NormalTime < 0
+            Adj_Time = NormalTime + 240000;
+        end        
+    else
+        error('请输入正确的参数!')
     end
 end

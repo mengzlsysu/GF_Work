@@ -8,7 +8,7 @@ classdef SimTrade < handle
             load_MultiplierMap(obj);
         end
         
-        [DailyStats] = execute(obj, TrdDate, ti_begin, ti_end, ModelPath, ModelName,TrsParam, Balance, DailyStats, ModelParams);
+        [DailyStats] = execute(obj, Orders, TrdDate, ti_begin, ti_end, ModelPath, ModelName,TrsParam, Balance, DailyStats, ModelParams);
         [newBalance] = calNewBalance(obj, balance, trades, trsCost, dataMap, msgHead);
 
          

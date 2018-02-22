@@ -15,6 +15,6 @@ function DailyStats = BackTesting(CommodityList, ModelParams)
     end
 
 %%  2. Ä£Äâ»Ø²â
-    DailyStats = Order2Result.GenerateResults(ModelParams, Orders);
+    DailyStats = Order2Result.GenerateResults(ModelParams, Orders, CommodityList);
 
 end
