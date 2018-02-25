@@ -15,7 +15,7 @@ function Orders = Orders(Orders_Raw, MCDuration, ModelParams)
         % 有效长度(非空)
         ss_temp = length(Orders_Raw);        
         for itemp = 1:ss_temp
-            Orders = [Orders;Orders_Raw{itemp}];
+            Orders(end+1:end+size(Orders_Raw{itemp},1),:) = Orders_Raw{itemp};
         end
         return;
     end

@@ -42,11 +42,10 @@ function [ DailyStats ] = execute(obj, Orders, TrdDate, ti_begin, ti_end, ModelP
         Trade = obj.StopPnL(Trade, Balance, dataMap, ModelParams);        
         
         for oi = 1 : size(Trade,1)
-            if oi~= size(Trade,1)
-                msgHead = sprintf('%s, 交易日期: %s, 品种: %s, 方向: %s, 数量: %d\t', ModelName, tiStr, Trade{oi,2}, Trade{oi,3}, Trade{oi,5});
-            else
-                msgHead = sprintf('%s, 交易日期: %s, 品种: %s, 方向: %s, 数量: %d\t', ModelName, tiStr, Trade{oi,2}, Trade{oi-2,3}, Trade{oi,5});
+            if iscell(Trade{oi,3})
+                Trade{oi,3} = Trade{oi,3}{1};
             end
+            msgHead = sprintf('%s, 交易日期: %s, 品种: %s, 方向: %s, 数量: %d\t', ModelName, tiStr, Trade{oi,2}, Trade{oi,3}, Trade{oi,5});            
             if oi>1 && Trade{oi,1} == Trade{oi-1,1} && strcmp(Trade{oi,2}, Trade{oi-1,2}) && strcmp(Trade{oi,3}, Trade{oi-1,3}) 
                 % 如果上下两行记录的时间、代码、买卖方向相同，则成交价格相同
                 Trade{oi,6} = Trade{oi-1,6};

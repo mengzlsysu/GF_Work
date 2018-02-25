@@ -13,6 +13,6 @@ function [dataMap] = loadDataMap(~,tiStr,ContractList)
         return
     end
     for i=1 : size(ContractList, 1)
-            load([dataPath, ContractList{i},'.mat']);   % 读取变量: MinData
-            dataMap(ContractList{i}) = MinData;
+        load([dataPath, ContractList{i},'.mat']);   % 读取变量: MinData
+        dataMap(ContractList{i}) = MinData;
     end

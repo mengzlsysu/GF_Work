@@ -13,7 +13,7 @@ function [TechIndex,MinData] = TechIndex(Contract, ModelParams)
     DataPath = ['..\00_DataBase\MarketData\MinData\ByContract\',Commodity,'\',TrsType,'\'];
 
     % Éú³É¾ä±ú
-    fhandle = str2func(['TargetOrders.Cal.TI.cal_', TIName]);    
+    fhandle = str2func(['TargetOrders_MultiCommodity.Cal.TI.cal_', TIName]);    
     
     %% 2    
     if exist([DataPath, Contract,'.mat'])

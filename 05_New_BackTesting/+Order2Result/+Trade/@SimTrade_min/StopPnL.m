@@ -49,7 +49,9 @@ function  [Adj_Trade] = StopPnL(obj, Trade, Balance, dataMap, ModelParams)
                 continue;
             end
             Trade_Close = Trade(index_temp,:);
-            Temp_AdjTrade = AdjTrade( Balance_Open(jtemp,:), Trade_Close, MinData, IsStopLoss, IsStopProfit, MultiplierMap, Capital, StopLossRange, StopProfitRange);
+            % 以昨日结算价作为成本价
+            OpenPrice = Balance{itemp,3};
+            Temp_AdjTrade = AdjTrade( Balance_Open(jtemp,:), Trade_Close, MinData, IsStopLoss, IsStopProfit, StopLossRange, StopProfitRange, OpenPrice);
             Trade(index_temp,:) = Temp_AdjTrade; 
         end
     end
@@ -70,7 +72,7 @@ function  [Adj_Trade] = StopPnL(obj, Trade, Balance, dataMap, ModelParams)
             end
             % 再找Trade_Open对应的Trade_Close
             Trade_Open = Trade_Contract(kk,:); Trade_Close = Trade_Contract(kk+1,:);
-            Temp_AdjTrade = AdjTrade(Trade_Open, Trade_Close, MinData, IsStopLoss, IsStopProfit, MultiplierMap, Capital, StopLossRange, StopProfitRange);
+            Temp_AdjTrade = AdjTrade(Trade_Open, Trade_Close, MinData, IsStopLoss, IsStopProfit, StopLossRange, StopProfitRange);
             Trade_Contract(kk+1,:) = Temp_AdjTrade;
         end        
         Adj_Trade = [Adj_Trade;Trade_Contract];
@@ -79,16 +81,20 @@ function  [Adj_Trade] = StopPnL(obj, Trade, Balance, dataMap, ModelParams)
     Adj_Trade = sortrows(Adj_Trade,1);
 end
 
-function Adj_Trade = AdjTrade(Trade_Open, Trade_Close, MinData, IsStopLoss, IsStopProfit, MultiplierMap, Capital, StopLossRange, StopProfitRange)
+function Adj_Trade = AdjTrade(Trade_Open, Trade_Close, MinData, IsStopLoss, IsStopProfit, StopLossRange, StopProfitRange, OpenPrice)
 %%  对于给定的开仓和平仓时间, 判断是否止盈/止损, 如不操作则返回正常平仓Trade_Close
 
     %% 0. 初始化
     Str = ['卖','买'];    
     Adj_Trade = Trade_Close;
-    % 开仓价
-    OpenPrice = round(Capital/MultiplierMap(Trade_Open{2})/Trade_Open{5});
     
     StartTime = rem(Trade_Open{1},1e6); EndTime = rem(Trade_Close{1},1e6);
+    % 开仓价
+    if nargin <= 7
+        OpenPrice = MinData(find(MinData(:,2)==StartTime)+1,3);
+    end
+    
+    % 针对夜盘的时间调整
     StartTime = AdjTime(StartTime, 1); EndTime = AdjTime(EndTime, 1);
     
     for itemp = 1:size(MinData,1)
@@ -112,7 +118,7 @@ function Adj_Trade = AdjTrade(Trade_Open, Trade_Close, MinData, IsStopLoss, IsSt
        else
            Index_temp = min(Index_temp);
            Adj_Trade{1} = MinData(StartIndex + Index_temp,1)*1e6 + AdjTime(MinData(StartIndex + Index_temp,2),2);
-           disp([num2str(Adj_Trade{1}),' 强平止损/止盈 !', ' 开仓价: ', num2str(OpenPrice), ', 目标平仓价: ', num2str(MinData(StartIndex + Index_temp,6))]);                      
+           disp([num2str(Adj_Trade{1}),' ',Adj_Trade{2},' 强平止损/止盈 !', ' 开仓价: ', num2str(OpenPrice), ', 目标平仓价: ', num2str(MinData(StartIndex + Index_temp,6))]);                      
        end
     % 只止损   
     elseif IsStopLoss
@@ -126,7 +132,7 @@ function Adj_Trade = AdjTrade(Trade_Open, Trade_Close, MinData, IsStopLoss, IsSt
            return;
        else
            Adj_Trade{1} = MinData(StartIndex + Index_temp,1)*1e6 + AdjTime(MinData(StartIndex + Index_temp,2),2);        
-           disp([num2str(Adj_Trade{1}),' 强平止损 !', ' 开仓价: ', num2str(OpenPrice), ', 目标平仓价: ', num2str(MinData(StartIndex + Index_temp,6))]);           
+           disp([num2str(Adj_Trade{1}),' ',Adj_Trade{2},' 强平止损 !', ' 开仓价: ', num2str(OpenPrice), ', 目标平仓价: ', num2str(MinData(StartIndex + Index_temp,6))]);           
        end
     % 只止盈   
     elseif IsStopProfit
@@ -140,7 +146,7 @@ function Adj_Trade = AdjTrade(Trade_Open, Trade_Close, MinData, IsStopLoss, IsSt
            return;
        else
            Adj_Trade{1} = MinData(StartIndex + Index_temp,1)*1e6 + AdjTime(MinData(StartIndex + Index_temp,2),2);         
-           disp([num2str(Adj_Trade{1}),' 强平止盈 !', ' 开仓价: ', num2str(OpenPrice), ', 目标平仓价: ', num2str(MinData(StartIndex + Index_temp,6))]);                      
+           disp([num2str(Adj_Trade{1}),' ',Adj_Trade{2},' 强平止盈 !', ' 开仓价: ', num2str(OpenPrice), ', 目标平仓价: ', num2str(MinData(StartIndex + Index_temp,6))]);                      
        end       
     end
 end

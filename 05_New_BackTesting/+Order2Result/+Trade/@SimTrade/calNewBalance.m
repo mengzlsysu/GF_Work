@@ -1,6 +1,6 @@
 %% calNewBalance: 根据昨日持仓和今日交易数据，计算今日持仓
-%     balance: 最后行:  1.'', 2.当日交易市值, 3.日终持仓市值, 4.日终权益, 5.''
-%                     其它行:  1.合约代码， 2.持仓数量(+/-)， 3.当日结算价， 4.当日结算市值,  5.持仓成本
+%     balance: 最后行:  1.''， 2.当日交易市值，3.日终持仓市值，4.日终权益
+%                     其它行:  1.合约代码， 2.持仓数量(+/-)， 3.当日结算价， 4.当日结算市值
 %     trades: 1.序号， 2.合约代码，3.买/卖，4.开/平，5.数量 
 function [newBalance] = calNewBalance(obj, balance, trades, trsCost, dataMap, msgHead)
         MultiplierMap = obj.MultiplierMap;
@@ -52,7 +52,7 @@ function [newBalance] = calNewBalance(obj, balance, trades, trsCost, dataMap, ms
         newPnl = 0;
         for i = 1:size(newBalance,1)  
             msk = ismember(trades(:,2), newBalance{i, 1});
-            newPos(i,[1,4]) = sum(pos(msk,[1,3]),1);  % 1. 最新持仓 3. 持仓成本
+            newPos(i,[1,3]) = sum(pos(msk,[1,3]),1);  % 1. 最新持仓 3. 持仓成本
             newPos(i,2) = obj.getSttlPrice(dataMap, newBalance{i,1}, 145900); % 2. 结算价
             if isnan(newPos(i,2))
                 error([msgHead, ' 交易品种:', newBalance{i,1}, ' 无结算价数据, 烦请补齐.']);
@@ -68,12 +68,12 @@ function [newBalance] = calNewBalance(obj, balance, trades, trsCost, dataMap, ms
                 sttlVal = newPos(i,1) * newPos(i,2)*200;    
             end  
             
-            newPnl = newPnl + sttlVal - newPos(i,4);    % pnl = 今日结算市值 - （昨日结算市值 + 今日交易成本 ).
+            newPnl = newPnl + sttlVal - newPos(i,3);    % pnl = 今日结算市值 - （昨日结算市值 + 今日交易成本 ).
             newPos(i,3) = sttlVal;
         end
-        newBalance(:,2:5) = num2cell(newPos);
+        newBalance(:,2:4) = num2cell(newPos);
         zMsk= newPos(:,1)==0;   % 删除持仓为0的头寸；
         newBalance(zMsk,:) = [];
-        newBalance(end+1,:) = {'', tvr, sumabs(newPos(:,3)),  balance{end,4}+newPnl, ''};   % 更新模型资金余额
+        newBalance(end+1,:) = {'', tvr, sumabs(newPos(:,3)),  balance{end,4}+newPnl};   % 更新模型资金余额
 end
 
