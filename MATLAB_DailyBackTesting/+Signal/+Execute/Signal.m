@@ -8,7 +8,7 @@ function MultiSignal = Signal( TechIndex_List, MCDuration, ModelParams )
     Signal_Num = length(TechIndex_List);   
     % 单一指标不处理
     if Signal_Num == 1
-        MultiSignal = TechIndex_List;
+        MultiSignal = TechIndex_List{1};
     else
         % 多技术指标生成信号的计算方法
         TI2Signal = ModelParams(1).TI2Signal;
