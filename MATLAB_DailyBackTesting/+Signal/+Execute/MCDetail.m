@@ -5,11 +5,15 @@ function [MainContractList, MCDuration] = MCDetail(MainContract)
 % 主力合约不切回
 
     %% 1
-    MainContractList = unique(MainContract(:, 2));
+    MainContractList = unique(MainContract(:, 2),'stable');
+    iiMC = 1;
     
     %% 2
     for iMC = 1:length(MainContractList)
         Contract = MainContractList{iMC};
+        if str2double(Contract(end-3:end)) <= 500
+            continue
+        end
         index = find(strcmp(MainContract(:,2),Contract) == 1,1,'first');
         if iMC ~= length(MainContractList)
             NextContract = MainContractList{iMC+1};
@@ -17,8 +21,9 @@ function [MainContractList, MCDuration] = MCDetail(MainContract)
         else
             lastindex = size(MainContract,1);
         end
-        MCDuration(iMC,1) = MainContract{index, 1};
-        MCDuration(iMC,2) = MainContract{lastindex, 1};
+        MCDuration(iiMC,1) = MainContract{index, 1};
+        MCDuration(iiMC,2) = MainContract{lastindex, 1};
+        iiMC = iiMC + 1;
     end
-    
+    MainContractList = MainContractList(end-length(MCDuration)+1:end);
 end

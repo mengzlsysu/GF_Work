@@ -8,6 +8,10 @@ function ATR = cal_ATR( DayData, Params )
     else
         Std_N = Params;   
     end
+
+    if isempty(DayData)
+        ATR = []; return
+    end
     
     LS_N = 5;   %入场点
     Flag_N = 10;   %出场点    

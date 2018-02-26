@@ -1,54 +1,48 @@
-function Stats = BackTesting(ModelParams, CommodityList)
+function Stats = BackTesting(ModelName, Params, Holding, Commodity, LS)
 %% 多因子策略
 %   数组Params存放Model所有参数, Holding代表持仓期长度, 一般为5的倍数(即1周的倍数)
+%   Commodity如果为0代表不进行单商品回测
 %   LS代表分组, ex: 1代表指标值顺序排列后, 排在第1组内的期货进行回测
-profile on
-    % 默认为全商品回测
-    if nargin <= 1
-        temp = Testing.Factors.Factor;
-        CommodityList = temp.get_CommodityList();
-        CommodityListFlag = Testing.Methods.select_Commodity(20170731, CommodityList);
-        % 剔除20170731仍不活跃的品种
-        CommodityList = CommodityList(CommodityListFlag == 1);
-    end
 
+% profile on
+
+    if nargin <= 3
+        Commodity = 0;
+        LS = 0;
+    elseif nargin <= 4 
+        LS = 0;
+    end
     close all
     %% 1.初始化
-    LS = ModelParams(1).LS;
-    H = ModelParams(1).H;
     % 获取日期
-    StartDate = ModelParams(1).StartDate;
-    EndDate = ModelParams(1).EndDate;  
+    StartDate = 20100104;
+    EndDate = 20170831;    
     load('TrdDate.mat')
     DateList = TrdDate(find(TrdDate(:, 1) >= StartDate & TrdDate(:, 1) <= EndDate), :);  
- 
-    % 命名模型并创建文件夹
-    SignalPath = ['..\MATLAB_DailyBackTesting\Evaluation\',ModelParams(1).ModelName,'\',ModelParams(1).TrsType,'\'];
-    for itemp = 1:length(ModelParams)
-       SignalPath = [SignalPath,ModelParams(itemp).FileName]; 
-    end
-    SignalPath = [SignalPath,'\',num2str(H),'\'];
-
-    % 本模型存储位置
-    ModelFolderName = SignalPath;
-    for itemp = 1:length(CommodityList)
-       Commodity = CommodityList{itemp}; 
-       ModelFolderName = [ModelFolderName,Commodity,'_']; 
-    end    
-    ModelFolderName = [ModelFolderName,'\'];      
     
-    % 生成信号
-    SignalPath = [SignalPath,'Signal\'];
-    Signal.GenerateSignals( CommodityList, SignalPath, ModelParams );
-
+    % 命名模型并创建文件夹
+    ModelFolderName = ['.\EvaluationSingle\', ModelName];
+    if ~isempty(Params)
+        ModelFolderName = [ModelFolderName, '\',num2str(Params(1))];
+        if length(Params)>1
+            for itemp = 2:length(Params)
+               ModelFolderName = [ModelFolderName,'_',num2str(Params(itemp))]; 
+            end
+        end
+    end
+    ModelFolderName = [ModelFolderName,'\',num2str(Commodity),'\',num2str(Holding),'\',num2str(StartDate),'_',num2str(EndDate),'\'];
+    
+    H = Holding;
     % 如果文件夹不存在，生成TargetHolding并创建子文件夹
     if ~isdir(ModelFolderName)
+        FactorName = ModelName;
         if LS == 0
-            Testing.Fac2TH.Factor2TargetHolding(ModelFolderName, SignalPath, CommodityList, ModelParams);   
+            TestingForSingle.Fac2TH.Factor2TargetHolding(FactorName, Params, H, Commodity, StartDate, EndDate);   
         else    
-            Testing.Fac2TH.Factor2TargetHolding_LS(ModelFolderName, SignalPath, CommodityList, ModelParams);               
+            TestingForSingle.Fac2TH.Factor2TargetHolding_LS(FactorName, Params, H, Commodity, StartDate, EndDate);               
         end
     end 
+    CommodityName = Commodity;
     
     % 创建文件夹
     TradeVariables = {'Asset', 'TargetHolding','TradePlan','TradeResult'};
@@ -70,10 +64,10 @@ profile on
     Stats(:, 1:2) = DateList;
     
     % 设置交易参数
-    Testing.Setting.initial_TrsParam;
+    TestingForSingle.Setting.initial_TrsParam;
     
     % 市场数据初始化
-    DataMap = Testing.DataMap;
+    DataMap = TestingForSingle.DataMap;
     dataParam.Type = 'DayData';
     dataParam.Period = '';
     
@@ -105,15 +99,15 @@ profile on
             % 导入TradePlan
             load(TPFileName);
             % 计算交易结果
-            TradeResult = Testing.Trade.generate_TradeResult(DataMap, TradePlan, TrsParam, Asset);
+            TradeResult = TestingForSingle.Trade.generate_TradeResult(DataMap, TradePlan, TrsParam, Asset);
             % 计算资产变化
-            Asset = Testing.Asset.update_Asset(Asset, TradeResult, TrsParam);            
+            Asset = TestingForSingle.Asset.update_Asset(Asset, TradeResult, TrsParam);            
             % 保存交易结果
             save([ModelFolderName, 'TradeResult\', num2str(Date), '.mat'], 'TradeResult')            
         end
 
         %% 每日结算、保存文件
-        Asset = Testing.Asset.settle_Asset(Asset, DataMap, DateTime,TrsParam); 
+        Asset = TestingForSingle.Asset.settle_Asset(Asset, DataMap, DateTime,TrsParam); 
         Holding = Asset.Holding;        
         % 有TP时 计算Holding, Cash, Asset 
         if isTP == 1        
@@ -144,7 +138,7 @@ profile on
                 end
             end            
             % 计算交易计划并保存
-            TradePlan = Testing.Trade.generate_TradePlan(Asset, DataMap, TargetHolding, DateTime, TrsParam);
+            TradePlan = TestingForSingle.Trade.generate_TradePlan(Asset, DataMap, TargetHolding, DateTime, TrsParam);
             % 保存交易计划
             save([ModelFolderName,  'TradePlan\', num2str(Date), '.mat'], 'TradePlan')
             isTP = 1;            
@@ -169,9 +163,9 @@ profile on
     Stats(:, 4) = totalAsset/InitialCapital;
     save([ModelFolderName, 'Stats.mat'], 'Stats')
     
-    Testing.Stats.plot_NetValue( ModelFolderName, H, CommodityList, DateList, Stats);
-    Testing.Stats.cal_RetraceRatio( Stats(:,4), Stats(:,2) );
-profile viewer
+    TestingForSingle.Stats.plot_NetValue( ModelFolderName, H, CommodityName, DateList, Stats);
+    TestingForSingle.Stats.cal_RetraceRatio( Stats(:,4), Stats(:,2) );
+% profile viewer  
 end
 
 

@@ -3,7 +3,10 @@ function GenerateSignals( CommodityList, SignalPath, ModelParams )
 
 %   对每个品种生成相应的最终指标值
     for iCommodity = 1:length(CommodityList)
-        Commodity = CommodityList{iCommodity};        
+        Commodity = CommodityList{iCommodity};    
+        if exist([SignalPath,Commodity,'.mat'])
+            continue
+        end
         GenerateCommoditySignal( Commodity, SignalPath, ModelParams )
     end
 

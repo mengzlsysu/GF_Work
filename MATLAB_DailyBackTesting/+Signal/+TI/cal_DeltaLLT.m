@@ -8,6 +8,10 @@ function DeltaLLT = cal_DeltaLLT(DayData, Params)
     end
     d = 1;
     
+    if isempty(DayData)
+        DeltaLLT = []; return
+    end
+    
     Price = DayData(:, 6);
     len = length(Price);
 

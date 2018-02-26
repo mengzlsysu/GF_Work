@@ -5,8 +5,8 @@ ModelParams = struct( 'TrsType', {'day'}...      % Ö´ĞĞ·½Ê½£¬day,Ê¹ÓÃÈÕÏßĞĞÇéÊı¾
                                     ,'TIParams', {200,20}...              % ¼¼ÊõÖ¸±ê²ÎÊı
                                     ,'FileName', {'DeltaLLT_200_','ATR_20_'}...      % ´¢´æ¼¼ÊõÖ¸±êµÄÎÄ¼şÃû
                                     ,'TI2Signal',{'SumSign'}...             % ¶à¼¼ÊõÖ¸±êÉú³ÉĞÅºÅµÄ¼ÆËã·½·¨
-                                    ,'Signal2Commodity',{'MaxMin'}...       % ¸ù¾İĞÅºÅÑ¡ÔñÉÌÆ·µÄ·½·¨ 
-                                    ,'CommodityParams',{0.1}...             % ĞÅºÅÑ¡ÔñÉÌÆ·º¯ÊıµÄ²ÎÊı
+                                    ,'Signal2Commodity',{'Sort'}...       % ¸ù¾İĞÅºÅÑ¡ÔñÉÌÆ·µÄ·½·¨ 
+                                    ,'CommodityParams',{[0,0.2]}...             % ĞÅºÅÑ¡ÔñÉÌÆ·º¯ÊıµÄ²ÎÊı
                                     ,'Margin', {0.2}...             % ±£Ö¤½ğ±ÈÀı
                                     ,'ModelName', {'JustForTest'}...     % ´¢´æÔÚ Evaluation ÖĞµÄÎÄ¼ş¼ĞÃû³Æ
                                     ,'StartDate', {20100105}, 'EndDate', {20170731}...             % »Ø²âÇø¼ä
